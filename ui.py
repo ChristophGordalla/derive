@@ -61,10 +61,10 @@ def main():
             expr = modify_with_replacements(expr)
             
             if not has_correct_syntax(expr):
-                expr = modify_input(expr)
-                debug_print("Syntax mod:\t\t" + expr, 1)
                 print(NEWLINE + ERROR_SYNTAX + NEWLINE + expr + NEWLINE)
                 continue
+            expr = modify_input(expr)
+            debug_print("Syntax mod:\t\t" + expr, 1)
             print("Derivative:\t\t" + derive(expr) + NEWLINE)
         except KeyboardInterrupt:
             exit_ui(1)
