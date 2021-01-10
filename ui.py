@@ -30,7 +30,7 @@ def print_instructions():
     print(LINE_STARS)
     print("Use this programm to derive analytic expressions.")
     print("The argument to derive is " + ARG, end='')
-    print("nd the following functions are being recognized:" + NEWLINE)
+    print(" and the following functions are being recognized:" + NEWLINE)
     for elem_func in ELEM_FUNCTIONS:
         print(elem_func + "(" + ARG + ") ", end='')
     print(NEWLINE + NEWLINE + "Type 'quit' to exit the program.")
