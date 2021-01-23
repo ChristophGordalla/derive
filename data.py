@@ -78,4 +78,4 @@ NEWLINE = "\n"
 # level for debug printout, 
 # the higher, the more information, 
 # 0 no printout at all
-debug_level = 0
+debug_level = 1

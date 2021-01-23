@@ -154,20 +154,16 @@ lowest precedence in that expression.
 """
 def lowest_precedence_operator_split(expr):
     parts = []
-    first_char_is_sign = False
+    offset = 0
     pos = get_pos_of_first_lowest_precedence_op(expr)
     # in this case not an operator, but a sign has been found
     if pos == 0:
-        first_char_is_sign = True
+        offset = 1
         pos = get_pos_of_first_lowest_precedence_op(expr[1:])
     if pos == -1:
         return [expr]
-    if first_char_is_sign:
-        op = expr[pos+1]
-        parts = operator_split(expr, op)
-    else:
-        op = expr[pos]
-        parts = operator_split(expr, op)
+    op = expr[pos+offset]
+    parts = operator_split(expr, op)
     return op, parts
 
 
@@ -380,12 +376,12 @@ def left_distributive_law(summands, sign):
     if n_summands == 1:
         return summands
     
-    for i in range(n_summands):
+    for i, summand in enumerate(summands):
         if has_been_visited[i]:
             continue
         has_been_simplified = False
         
-        summands_sub = get_distributive_law_sub_parts(summands[i])
+        summands_sub = get_distributive_law_sub_parts(summand)
         
         factor_right = summands_sub[1]
         
@@ -406,7 +402,7 @@ def left_distributive_law(summands, sign):
         if has_been_simplified:
             summands_simplified.append(summand_simplified)
         else:
-            summands_simplified.append(summands[i])
+            summands_simplified.append(summand)
     
     return summands_simplified
 
@@ -471,15 +467,14 @@ def simplify_sub(expr):
     # if no split could be made, there are brackets, functions, or there is nothing to simplify
     else:
         # look for brackets
-        for k in range(N_BRAC):
-            if expr[0] == BRACKETS_OPEN[k]:
-                expr_simp += BRACKETS_OPEN[k] + simplify_sub(expr[1:-1]) + BRACKETS_CLOSED[k]     
+        for bracket in BRACKETS:
+            if expr[0] == bracket:
+                expr_simp += bracket + simplify_sub(expr[1:-1]) + BRACKETS.get(bracket)     
                 return expr_simp
         # look for functions
         elemFunc = get_elem_func(expr, 0)
         if elemFunc != "":
-            n_func = len(elemFunc)
-            expr_simp += elemFunc + "{" + simplify_sub(expr[n_func+1:-1]) + "}"
+            expr_simp += elemFunc + "{" + simplify_sub(expr[len(elemFunc)+1:-1]) + "}"
             return expr_simp
         # if also no functions could be found, there is nothing to simplify
         return expr

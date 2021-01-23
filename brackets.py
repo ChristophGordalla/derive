@@ -2,7 +2,6 @@
 """
 Methods to transform the brackets of an expression.
 """
-
 from data import *
 from util import *
 
@@ -22,7 +21,7 @@ def transform_brackets(expr):
     n_func = -1
     b_i = -1
     is_transformable = False
-    for i in range(n_expr):
+    for i, _ in enumerate(expr):
         elem_func = get_elem_func(expr, i)
         n_func = len(elem_func)
         if n_func > 0:
@@ -35,7 +34,7 @@ def transform_brackets(expr):
                 break
     if is_transformable:
         b_f = get_closed_bracket_pos(expr, b_i)
-        return transform_brackets(expr[0:b_i] + "{" + expr[b_i+1:b_f] + "}" + expr[b_f+1:n_expr])
+        return transform_brackets(expr[:b_i] + "{" + expr[b_i+1:b_f] + "}" + expr[b_f+1:])
     return expr    
 
 
@@ -92,9 +91,8 @@ def remove_brackets(expr):
     is_bracket_pair_removable = True
     is_minus_sign_before_bracket = False
     
-    for i in range(n_expr):
-        c = expr[i]
-        if c == "(":
+    for i, ch in enumerate(expr):
+        if ch == "(":
             is_bracket_pair_removable = True
             b_i = i
             b_f = get_closed_bracket_pos(expr,i)
@@ -126,10 +124,10 @@ def remove_brackets(expr):
                     if(precedence_right > lowest_precendence or precedence_left > lowest_precendence):
                         is_bracket_pair_removable = False
             if is_minus_sign_before_bracket:
-                expr = expr[0:b_i-1] + swap_plus_and_minus_signs(expr[b_i+1:b_f]) + expr[b_f+1:n_expr]
+                expr = expr[:b_i-1] + swap_plus_and_minus_signs(expr[b_i+1:b_f]) + expr[b_f+1:]
                 return remove_brackets(expr)
             if is_bracket_pair_removable:
-                expr = expr[0:b_i] + expr[b_i+1:b_f] + expr[b_f+1:n_expr]
+                expr = expr[:b_i] + expr[b_i+1:b_f] + expr[b_f+1:]
                 # if the operator before the bracket is a '+' 
                 # and the sign of the first summand is a '-', 
                 # then removing the brackets will result in '+-'

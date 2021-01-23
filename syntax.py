@@ -3,7 +3,6 @@
 Checks for incorrect syntax of an expression
 and corrects it whenever possible.
 """
-
 from data import *
 from util import *
 
@@ -98,9 +97,9 @@ def modify_signs_after_operators_sub(expr, pos):
     # at the end have passed the 'has_correct_syntax()' 
     # method that was run before
     pos_i = pos_op+1
-    c = expr_sub[pos_i]
+    ch = expr_sub[pos_i]
     for op_right in ops_right:
-        if c == op_right:
+        if ch == op_right:
             pos_f = get_pos_for_closing_bracket(expr_sub, pos_i)
             break
     #wrap into brackets
@@ -201,14 +200,13 @@ def has_incorrect_bracket_syntax(expr):
     n_expr = len(expr)
     # bracket count for each bracket type
     bc = [0]*N_BRAC
-    for i in range(n_expr):
-        c = expr[i]
-        for j in range(N_BRAC):
-            if c == BRACKETS_OPEN[j]:
+    for i, ch in enumerate(expr):
+        for j, bracket in enumerate(BRACKETS):
+            if ch == bracket:
                 bc[j] += 1
-            elif c == BRACKETS_CLOSED[j]:
+            elif ch == BRACKETS.get(bracket):
                 bc[j] -= 1
-    for i in range(N_BRAC):
+    for i, _ in enumerate(BRACKETS):
         if bc[i] != 0:
             return True
     return False
@@ -226,12 +224,11 @@ in the expression 'expr'.
 """
 def has_empty_brackets(expr):
     n_expr = len(expr)
-    for i in range(n_expr):
-        c = expr[i]
-        for j in range(N_BRAC):
-            if c == BRACKETS_OPEN[j]:
+    for i, ch in enumerate(expr):
+        for bracket in BRACKETS:
+            if ch == bracket:
                 b_i = i
-                b_f = get_closed_bracket_pos(expr,i)
+                b_f = get_closed_bracket_pos(expr, i)
                 if b_f - b_i == 1:
                     return True
     return False
@@ -275,16 +272,15 @@ def has_incorrect_operator_syntax(expr):
     operators = OPERATORS_DICT
     operators['/'] = 1
     
-    for i in range(n_expr):
-        c = expr[i]
+    for i, ch in enumerate(expr):
         for op in operators:
-            if c == op:
+            if ch == op:
                 # if operator is at the end of expression
                 # directly before a closing bracket
                 if i == n_expr-1:
                     return True
-                for j in range(N_BRAC):
-                    if expr[i+1] == BRACKETS_CLOSED[j]:
+                for bracket_closed in BRACKETS_CLOSED:
+                    if expr[i+1] == bracket_closed:
                         return True
                 # for two adjacent operators, only the combinations
                 # from 'OPERATOR_COMBINATIONS' from data.py 
@@ -300,8 +296,9 @@ def has_incorrect_operator_syntax(expr):
                     # or directly after an open bracket
                     if i == 0:
                         return True
-                    if expr[i-1] == BRACKETS_OPEN[j]:
-                        return True
+                    for bracket_open in BRACKETS_OPEN:
+                        if expr[i-1] == bracket_open:
+                            return True
     return False
 
 

@@ -6,8 +6,7 @@ Methods to derive an expression.
 from data import *
 from util import *
 from brackets import *
-from derive import *
-from simplify import *
+
 
 
 """
@@ -65,6 +64,7 @@ is written to the output string.
 """
 def derive_sub(expr):
     debug_print("Derive:\t"+expr, 10)
+    # unnecessary brackets should be removed at each run
     expr = remove_brackets(expr)
     if not is_arg_in_expr(expr):
         return "0"
@@ -111,7 +111,7 @@ def derive_sub(expr):
                     derivative = power_law_dev(subexpr1, subexpr2) + "*(" + derive_sub(remove_brackets(subexpr1))+ ")"
                 return derivative
     # then scan 'expr' for chain rule
-    for i in range(len(expr)):
+    for i, _ in enumerate(expr):
         func = get_elem_func(expr, i)
         debug_print(func, 10)
         if func != "":
@@ -127,7 +127,7 @@ def derive_sub(expr):
                 while posArg > -1:
                     # replace all 'ARG_PLACEHOLD's from outer with '(inner)'
                     # add '(derive_sub(inner))' to string
-                    outer = outer[0:posArg] + "(" + inner + ")" + outer[posArg+len(ARG_PLACEHOLD):len(outer)]
+                    outer = outer[:posArg] + "(" + inner + ")" + outer[posArg+len(ARG_PLACEHOLD):len(outer)]
                     posArg = outer.find(ARG_PLACEHOLD)
                 derivative += "(" + outer + ")" + "*" + "(" + derive_sub(inner) + ")"
                 return derivative
@@ -141,27 +141,3 @@ def derive_sub(expr):
     derivative += "d{" + expr + ", " + ARG + "}"
     return derivative
 
-
-"""
-Computes the derivative of 'expr' and 
-performs the necessary transformations
-and simplifications.
-
-@param expr     string, expression to be derived
-
-@return         string, derivative of 'expr'
-"""
-def derive(expr):
-    expr = transform_brackets(expr)
-    debug_print("Transformed:\t\t" + expr, 1)
-    expr = simplify(expr)
-    debug_print("Simplified:\t" + expr, 1)
-    expr = derive_sub(expr)
-    debug_print("Derived:\t\t" + expr, 1)
-    expr = remove_brackets(expr)
-    debug_print("Removed:\t\t" + expr, 1)
-    expr = simplify(expr)
-    debug_print("Simplified:\t\t" + expr, 1)
-    expr = back_transform_brackets(expr)
-    debug_print("Backtransformed:\t" + expr, 1)
-    return expr

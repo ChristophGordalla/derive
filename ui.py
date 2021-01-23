@@ -1,17 +1,16 @@
 # coding: utf8
 """
 *****************************************************
-This is a small program to get analytical 
+This is a little program to get analytical 
 derivatives of expressions. Start the program
 with python3 ui.py and follow the instructions
 on the screen.
 
 @author:    Christoph Gordalla
-@data:      2021-05-01
+@data:      2021-23-01
 @version:   Python 3.6.8 or higher
 *****************************************************
 """
-
 import sys
 
 from data import *
@@ -36,6 +35,32 @@ def print_instructions():
     print(NEWLINE + NEWLINE + "Type 'quit' to exit the program.")
     print(LINE_STARS)
     print(NEWLINE)
+
+
+
+"""
+Computes the derivative of 'expr' and 
+performs the necessary transformations
+and simplifications.
+
+@param expr     string, expression to be derived
+
+@return         string, derivative of 'expr'
+"""
+def derive_ui(expr):
+    expr = transform_brackets(expr)
+    debug_print("Transformed:\t\t" + expr, 1)
+    expr = simplify(expr)
+    debug_print("Simplified:\t" + expr, 1)
+    expr = derive_sub(expr)
+    debug_print("Derived:\t\t" + expr, 1)
+    expr = remove_brackets(expr)
+    debug_print("Removed:\t\t" + expr, 1)
+    expr = simplify(expr)
+    debug_print("Simplified:\t\t" + expr, 1)
+    expr = back_transform_brackets(expr)
+    debug_print("Backtransformed:\t" + expr, 1)
+    return expr
 
 
 """
@@ -65,7 +90,7 @@ def main():
                 continue
             expr = modify_input(expr)
             debug_print("Syntax mod:\t\t" + expr, 1)
-            print("Derivative:\t\t" + derive(expr) + NEWLINE)
+            print("Derivative:\t\t" + derive_ui(expr) + NEWLINE)
         except KeyboardInterrupt:
             exit_ui(1)
         except Exception as e:
@@ -73,5 +98,5 @@ def main():
             exit_ui(1)
 
 
-# execution of main method:
+# main method:
 main()

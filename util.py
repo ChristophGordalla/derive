@@ -3,8 +3,8 @@
 Utility methods that are used by the other files
 but that do not directly change the given expression.
 """
-
 from data import *
+
 
 
 """
@@ -50,10 +50,10 @@ in one of the parts.
                 or an empty list if 'pos' is not between 0 and N
 """
 def split_left_right(expr, pos):
-    N = len(expr)
-    if pos < 0 or pos > N:
+    n_expr = len(expr)
+    if pos < 0 or pos > n_expr:
         return []
-    return [expr[0:pos], expr[pos+1:N]]
+    return [expr[:pos], expr[pos+1:]]
     
     
 """
@@ -64,12 +64,12 @@ Checks if 'expr' contains the argument 'ARG'.
 @return:        boolean, True if 'expr' contains 'ARG', False otherwise
 """
 def is_arg_in_expr(expr):
-    for i in range(len(expr)):
+    for i, ch in enumerate(expr):
         elem_func = get_elem_func(expr, i)
         if elem_func != "":
             i += len(elem_func)
             continue
-        if expr[i] == ARG:
+        if ch == ARG:
             return True
     return False
 
@@ -97,9 +97,10 @@ elementary function at the position 'pos'.
 """
 def get_elem_func(expr, pos):
     func_found = ""
+    n_expr = len(expr)
     for func_elem in ELEM_FUNCTIONS:
         n_func = len(func_elem)
-        if pos+n_func < len(expr):
+        if pos+n_func < n_expr:
             if func_elem == expr[pos : pos+n_func]:
                 func_found = func_elem
     return func_found
@@ -117,11 +118,12 @@ and one character right to 'b_f' in 'expr' (if there are any).
 def get_left_right_ops(expr, b_i, b_f):
     op_left = ""
     op_right = ""
+    n_expr = len(expr)
     for op in OPERATORS:
         if b_i > 0:
             if op == expr[b_i-1]:
                 op_left = op
-        if b_f < len(expr)-1:
+        if b_f < n_expr-1:
             if op == expr[b_f+1]:
                 op_right = op
     return [op_left, op_right]
@@ -155,20 +157,17 @@ by looking at "openBrackets" and "closedBrackets".
                         method.
 """
 def get_closed_bracket(open_bracket_given):
-    count = 1;
-    for open_bracket in BRACKETS_OPEN:
-        if open_bracket == open_bracket_given:
-            count -= 1
-            break;
-        count += 1
-    if count == len(BRACKETS_OPEN):
+    bracket_closed = BRACKETS.get(open_bracket_given)
+    if bracket_closed == None:
         return ""
-    return BRACKETS_CLOSED[count]
+    return bracket_closed
 
 
 """
-Finds the closing bracket if there is an opening bracket at 'pos'
+Finds the closing bracket if there is an opening bracket at 'pos' 
+of an expression 'expr'
 
+@param expr     string, expression to be looked at
 @param pos      int, position of opening pos
 @return         int, position of closing bracket
                 -2 if there was no opening bracket at 'pos'
@@ -177,13 +176,13 @@ Finds the closing bracket if there is an opening bracket at 'pos'
 def get_closed_bracket_pos(expr, pos):
     countOpen = 0;
     bracket_open = expr[pos]
-    bracket_closed = get_closed_bracket(bracket_open)
+    bracket_closed = BRACKETS.get(bracket_open)
     if bracket_closed == "":
         return -2
-    for i in range(pos+1, len(expr)):
-        if expr[i] == bracket_open:
+    for i, ch in enumerate(expr[pos+1:], start=pos+1):
+        if ch == bracket_open:
             countOpen += 1
-        elif expr[i] == bracket_closed:
+        elif ch == bracket_closed:
             countOpen -= 1
         if countOpen == -1:
             return i
@@ -206,16 +205,15 @@ def get_pos_of_first_op(expr, op):
     n_brac = len(BRACKETS_OPEN)
     # bracket count for each bracket type
     bc = [0]*n_brac
-    for i in range(n_expr):
-        c = expr[i]
-        for j in range(n_brac):
-            if c == BRACKETS_OPEN[j]:
+    for i, ch in enumerate(expr):
+        for j, bracket in enumerate(BRACKETS):
+            if ch == bracket:
                 bc[j] += 1
-            elif c == BRACKETS_CLOSED[j]:
+            elif ch == BRACKETS.get(bracket):
                 bc[j] -= 1
-        if c == op:
+        if ch == op:
             op_is_not_inside_brackets = True
-            for j in range(n_brac):
+            for j, _ in enumerate(BRACKETS):
                 if bc[j] > 0:
                     op_is_not_inside_brackets = False
                     break
