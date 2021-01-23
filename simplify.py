@@ -7,24 +7,89 @@ from util import *
 from brackets import *
 
 
+"""
+Removes common elements from 'list_plus' and 'list_minus'.
+set() cannot be used here since it is important
+how often a certain element is shared between 
+both lists.
+
+@param list_plus    string list, first list
+@param list_minus   string list, second list
+
+@return             [list_plus, list_minus] with their 
+                    common parts removed
+"""
+def remove_common_plus_minus_parts(list_plus, list_minus):
+    tmp = list_minus[:]
+
+    for e in list_plus:
+        if e in list_minus:
+            list_minus.pop(list_minus.index(e))
+            
+    for e in tmp:
+        if e in list_plus:
+            list_plus.pop(list_plus.index(e))
+    
+    # if both lists are empty, one of them must carry a zero
+    if not list_plus and not list_minus:
+        list_plus = ["0"]
+    
+    return [list_plus, list_minus]
+
 
 """
 Simplfies a given list of expressions that are connected
 through the '+' or '-' operator. 
 
-@param parts    string list, expressions that are connected
-                through the '+' or '-' operator
-@param sign     char, either '+' or '-'
-                
-@return         two string lists, 
-                one list of simplified expressions 
-                that are connected through the '+' operator,
-                one list of simplified expressions 
-                that are connected through the '-' operator,
+@param parts_plus   string list, expressions that are connected
+                    through the '+' operator
+@param parts_minus  string list, expressions that are connected
+                    through the '-' operator
+
+@return             two string lists, simplified versions for 
+                    'parts_plus' and 'parts_minus'
 """
-def simplify_plus_minus_parts(expr):
-    parts_plus_sign = []
-    parts_minus_sign = []
+def simplify_plus_minus_parts(parts_plus, parts_minus):
+    parts_plus = simplify_addition_parts(parts_plus, '+')
+    parts_minus = simplify_addition_parts(parts_minus, '-')
+    
+    # last element of simplified lists is the numerical sum or 0
+    last_plus = parse_number(parts_plus.pop())
+    debug_print(last_plus, 100)
+    last_minus = parse_number(parts_minus.pop())
+    debug_print(last_minus, 100)
+    sum_number =  last_plus - last_minus
+    if sum_number > 0:
+        parts_plus.append(str(abs(sum_number)))
+    elif sum_number < 0:
+        parts_minus.append(str(abs(sum_number)))
+    else:
+        # only append a 0 summand to 'parts_plus'
+        # if 'parts_plus' and 'parts_minus' 
+        # are both empty lists
+        if len(parts_plus) == 0 and len(parts_minus) == 0:
+            parts_plus.append(str(abs(sum_number)))
+    # if same parts are in parts_plus 
+    # and in parts_minus, remove them from both lists
+    parts_plus, parts_minus = remove_common_plus_minus_parts(parts_plus, parts_minus)
+    
+    return [parts_plus, parts_minus]
+
+    
+"""
+Splits an expression at its + and - signs.
+E.g. "1+2+3-4+5" -> ['1', '2', '3', '5'], ['4']
+
+@param expr     string, expression to be split
+
+@return         two string lists, one with the parts that are
+                connected through a plus sign, and one 
+                with the parts that are connected through 
+                a minus sign
+"""
+def operator_plus_minus_split(expr):
+    parts_plus = []
+    parts_minus = []
     n_expr = len(expr)
     sign = ''
     pos = 0
@@ -35,7 +100,7 @@ def simplify_plus_minus_parts(expr):
     if expr[0] == '-':
         sign = '-'
         i = 1
-    # TODO: rewrite method with get_pos_of_all_ops()
+    # TODO for later: rewrite method with get_pos_of_all_ops()
     while (i<n_expr):
         pos_plus = get_pos_of_first_op(expr[i:], '+')
         pos_minus = get_pos_of_first_op(expr[i:], '-')
@@ -44,9 +109,9 @@ def simplify_plus_minus_parts(expr):
         if pos_plus == -1 and pos_minus == -1:
             part = expr[i:n_expr]
             if sign == '+':
-                parts_plus_sign.append(part)
+                parts_plus.append(part)
             elif sign == '-':
-                parts_minus_sign.append(part)
+                parts_minus.append(part)
             break
         # find out if a '+' or a '-' occurs first in 'expr'
         if pos_plus == -1:
@@ -60,47 +125,25 @@ def simplify_plus_minus_parts(expr):
         # extract and append the corresponding part
         part = expr[i:i+pos]
         if sign == '+':
-            parts_plus_sign.append(part)
+            parts_plus.append(part)
         elif sign == '-':
-            parts_minus_sign.append(part)
+            parts_minus.append(part)
         sign = expr[i+pos]
         i += pos+1
     
-    parts_plus_sign_simplified = simplify_addition_parts(parts_plus_sign, '+')
-    parts_minus_sign_simplified = simplify_addition_parts(parts_minus_sign, '-')
-    
-    #TODO: if same parts are in parts_plus_sign_simplified 
-    # and in parts_minus_sign_simplified, remove them from both lists
-    
-    # last element of simplified lists is the numerical sum or 0
-    last_plus = parse_number(parts_plus_sign_simplified.pop())
-    debug_print(last_plus, 100)
-    last_minus = parse_number(parts_minus_sign_simplified.pop())
-    debug_print(last_minus, 100)
-    sum_number =  last_plus - last_minus
-    if sum_number > 0:
-        parts_plus_sign_simplified.append(str(abs(sum_number)))
-    elif sum_number < 0:
-        parts_minus_sign_simplified.append(str(abs(sum_number)))
-    else:
-        # only append a 0 summand to 'parts_plus_sign_simplified'
-        # if 'parts_plus_sign_simplified' and 'parts_minus_sign_simplified' 
-        # are both empty lists
-        if len(parts_plus_sign_simplified) == 0 and len(parts_minus_sign_simplified) == 0:
-            parts_plus_sign_simplified.append(str(abs(sum_number)))
-    
-    return [parts_plus_sign_simplified, parts_minus_sign_simplified]
-    
+    return [parts_plus, parts_minus]
+
 
 """
-Splits an expression 'expr' at the operator 'op'.
+Splits an expression at any other operator than
++ or -.
 
-@param expr     string, expression to be split up
-@param op       char, operator to split at
+@param expr     string, expression to be split
 
-@return         string array with the splitted parts of 'expr'
+@return         string list with the parts that
+                resulted from the split
 """
-def operator_split(expr, op):
+def operator_other_split(expr, op):
     parts = []
     pos_op = -1
     i = 0
@@ -117,12 +160,31 @@ def operator_split(expr, op):
 
 
 """
+Splits an expression 'expr' at the operator 'op'.
+
+@param expr     string, expression to be split up
+@param op       char, operator to split at
+
+@return         string list with the splitted parts of 'expr'
+"""
+def operator_split(expr, op):
+    if OPERATORS_DICT.get(op) == 0:
+        parts = operator_plus_minus_split(expr)
+    else:
+        parts = operator_other_split(expr, op)
+    
+    return parts
+
+
+"""
 Splits an expression 'expr' at the operator 'op' 
 into a maximum of 'maxsplit' parts.
 
 @param expr         string, expression to be split up
 @param op           char, operator to split at
 @param maxsplit     int, maximum number of parts that the expression is split into
+
+@return         string list with the splitted parts of 'expr'
 """
 def operator_max_split(expr, op, maxsplit):
     parts = operator_split(expr, op)
@@ -187,9 +249,9 @@ def sort_string_parts_sub(parts):
     # then - to create a more natural order - 
     # sort the pre-ordered list according
     # to the order of the list ELEM_FUNCTIONS
-    for elemFunction in ELEM_FUNCTIONS:
+    for elem_func in ELEM_FUNCTIONS:
         for part in parts:
-            if part.startswith(elemFunction):
+            if part.startswith(elem_func):
                 parts_sorted.append(part)
                 parts.remove(part)
     # add the remaining parts to the sorted list
@@ -460,43 +522,38 @@ def simplify_sub(expr):
     parts_minus = []
     op = ""
     
-    if len(parts_split) == 2:
-        # both variables will be used after the if-else branch
-        op = parts_split[0]
-        parts = parts_split[1]
     # if no split could be made, there are brackets, functions, or there is nothing to simplify
-    else:
+    if not len(parts_split) == 2:
         # look for brackets
         for bracket in BRACKETS:
             if expr[0] == bracket:
                 expr_simp += bracket + simplify_sub(expr[1:-1]) + BRACKETS.get(bracket)     
                 return expr_simp
         # look for functions
-        elemFunc = get_elem_func(expr, 0)
-        if elemFunc != "":
-            expr_simp += elemFunc + "{" + simplify_sub(expr[len(elemFunc)+1:-1]) + "}"
+        elem_func = get_elem_func(expr, 0)
+        if elem_func != "":
+            expr_simp += elem_func + "{" + simplify_sub(expr[len(elem_func)+1:-1]) + "}"
             return expr_simp
         # if also no functions could be found, there is nothing to simplify
         return expr
-                
+    
+    op = parts_split[0]
+    parts = parts_split[1]
     if op == "+" or op == "-":
-        parts = simplify_plus_minus_parts(expr)
         parts_plus = parts[0]
         parts_minus = parts[1]
-    elif op == "*":
-        parts = simplify_multiplication_parts(parts)
-    elif op == "^":
-        parts = simplify_potential_parts(parts)
-    
-    # splitting up the expression of the (simplified) parts from above
-    if op == '+' or op == "-":
+        parts_plus, parts_minus = simplify_plus_minus_parts(parts_plus, parts_minus)
         for part in parts_plus:
             expr_simp += simplify_sub(part) + '+'
         # remove last plus sign
         expr_simp = expr_simp[:-1]
         for part in parts_minus:
             expr_simp += '-' + simplify_sub(part)
-    else:
+    else:        
+        if op == "*":
+            parts = simplify_multiplication_parts(parts)
+        elif op == "^":
+            parts = simplify_potential_parts(parts)       
         for part in parts:
             expr_simp += simplify_sub(part) + op
         # remove last operator
