@@ -23,5 +23,5 @@ The following files are found in the project:
 * *simplify.py*: a collection of methods to simplify a given expression
 * *syntax.py*: methods to check and modify incorrect or ambiguous syntax of a given expression
 * *util.py*: a collection of utility methods that are used from the methods in the files above
-* *text.py*: tests that should verify that the program runs properly
+* *text.py*: unit tests that verify that the program runs properly
 * *data.py*: a file containing the data such as elementary functions and its derivatives, operators, etc. 
