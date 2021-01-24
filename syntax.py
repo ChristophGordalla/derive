@@ -3,8 +3,9 @@
 Checks for incorrect syntax of an expression
 and corrects it whenever possible.
 """
+import util
+
 from data import *
-from util import *
 
 
 
@@ -12,7 +13,11 @@ from util import *
 Applies the replacements 'REPLACEMENTS' from data.py
 to expression. This should be done before 
 the 'has_correct_syntax' method checks 
-the expression for possible error 
+the expression for possible error.
+
+@param expr     string, expression to be modified
+
+@return         string, modified expression
 """
 def modify_with_replacements(expr):
     for repl in REPLACEMENTS:
@@ -37,7 +42,7 @@ def get_pos_for_closing_bracket(expr, pos_i):
     # x*-1^2 -> x*(-1^2)
     # x^-1^2 -> x^(-1^2)
     operators = OPERATORS[:-1]
-    # add '/' to get a break
+    # add '/' to get a break at '/'
     operators.append('/')
     
     
@@ -47,11 +52,11 @@ def get_pos_for_closing_bracket(expr, pos_i):
     # method that was run before
         if expr[pos_i+1] == bracket_open:
             # find closing bracket
-            pos_f = get_closed_bracket_pos(expr, pos_i+1)
+            pos_f = util.get_closed_bracket_pos(expr, pos_i+1)
             return pos_f
     
     for op in operators:
-        pos_op = get_pos_of_first_op(expr[pos_i+1:], op)
+        pos_op = util.get_pos_of_first_op(expr[pos_i+1:], op)
         if pos_op > -1:
             pos_op_list.append(pos_op)
     if pos_op_list:
@@ -228,7 +233,7 @@ def has_empty_brackets(expr):
         for bracket in BRACKETS:
             if ch == bracket:
                 b_i = i
-                b_f = get_closed_bracket_pos(expr, i)
+                b_f = util.get_closed_bracket_pos(expr, i)
                 if b_f - b_i == 1:
                     return True
     return False

@@ -2,11 +2,47 @@
 """
 Methods to derive an expression.
 """
+import util
+import brackets as br
 
 from data import *
-from util import *
-from brackets import *
 
+
+
+"""
+Checks if 'expr' contains the argument 'ARG'.
+
+@param expr     string, expression to be checked
+
+@return:        boolean, True if 'expr' contains 'ARG', False otherwise
+"""
+def is_arg_in_expr(expr):
+    for i, ch in enumerate(expr):
+        elem_func = util.get_elem_func(expr, i)
+        if elem_func != "":
+            i += len(elem_func)
+            continue
+        if ch == ARG:
+            return True
+    return False
+
+
+"""
+Splits 'expr' at position 'pos' and returns both parts.
+The character at position 'pos' itself is not included 
+in one of the parts.
+
+@param expr     string, expression to split
+@param pos      int, position to split
+
+@return         string list of the splitted parts 
+                or an empty list if 'pos' is not between 0 and N
+"""
+def split_left_right(expr, pos):
+    n_expr = len(expr)
+    if pos < 0 or pos > n_expr:
+        return []
+    return [expr[:pos], expr[pos+1:]]
 
 
 """
@@ -63,20 +99,19 @@ is written to the output string.
 @return         string, derived expression
 """
 def derive_sub(expr):
-    debug_print("Derive:\t"+expr, 10)
+    util.debug_print("Derive:\t"+expr, 10)
     # unnecessary brackets should be removed at each run
-    expr = remove_brackets(expr)
+    expr = br.remove_brackets(expr)
     if not is_arg_in_expr(expr):
         return "0"
     elif expr == ARG:
         return "1"
     derivative = ""
-    offset = 0
     # if expr starts with a sign, add a '0' to its start
     if expr[0] == '+' or expr[0] == '-':
         expr = '0' + expr
     
-    opPos = get_pos_of_first_lowest_precedence_op(expr)
+    opPos = util.get_pos_of_first_lowest_precedence_op(expr)
     if opPos > -1:
         op = expr[opPos]
         [subexpr1, subexpr2] = split_left_right(expr, opPos)
@@ -108,15 +143,15 @@ def derive_sub(expr):
                 if subexpr1 == ARG:
                     derivative = power_law_dev(subexpr1, subexpr2)
                 else:
-                    derivative = power_law_dev(subexpr1, subexpr2) + "*(" + derive_sub(remove_brackets(subexpr1))+ ")"
+                    derivative = power_law_dev(subexpr1, subexpr2) + "*(" + derive_sub(br.remove_brackets(subexpr1))+ ")"
                 return derivative
     # then scan 'expr' for chain rule
     for i, _ in enumerate(expr):
-        func = get_elem_func(expr, i)
-        debug_print(func, 10)
+        func = util.get_elem_func(expr, i)
+        util.debug_print(func, 10)
         if func != "":
             idx_i = i+len(func)
-            idx_f = get_closed_bracket_pos(expr, idx_i)
+            idx_f = util.get_closed_bracket_pos(expr, idx_i)
             # apply chain rule
             outer = ELEM_FUNCTION_DEVS.get(func)
             inner = expr[idx_i+1 : idx_f]

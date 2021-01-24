@@ -2,9 +2,11 @@
 """
 Methods to simplify an expression.
 """
+import util
+import brackets as br
+
 from data import *
-from util import *
-from brackets import *
+
 
 
 """
@@ -50,14 +52,14 @@ through the '+' or '-' operator.
                     'parts_plus' and 'parts_minus'
 """
 def simplify_plus_minus_parts(parts_plus, parts_minus):
-    parts_plus = simplify_addition_parts(parts_plus, '+')
-    parts_minus = simplify_addition_parts(parts_minus, '-')
+    parts_plus = simplify_addition_parts(parts_plus)
+    parts_minus = simplify_addition_parts(parts_minus)
     
     # last element of simplified lists is the numerical sum or 0
-    last_plus = parse_number(parts_plus.pop())
-    debug_print(last_plus, 100)
-    last_minus = parse_number(parts_minus.pop())
-    debug_print(last_minus, 100)
+    last_plus = util.parse_number(parts_plus.pop())
+    util.debug_print(last_plus, 100)
+    last_minus = util.parse_number(parts_minus.pop())
+    util.debug_print(last_minus, 100)
     sum_number =  last_plus - last_minus
     if sum_number > 0:
         parts_plus.append(str(abs(sum_number)))
@@ -71,6 +73,7 @@ def simplify_plus_minus_parts(parts_plus, parts_minus):
             parts_plus.append(str(abs(sum_number)))
     # if same parts are in parts_plus 
     # and in parts_minus, remove them from both lists
+    # TODO: apply a distributive law in the future instead
     parts_plus, parts_minus = remove_common_plus_minus_parts(parts_plus, parts_minus)
     
     return [parts_plus, parts_minus]
@@ -100,12 +103,12 @@ def operator_plus_minus_split(expr):
         sign = '-'
         idx = 1
         
-    pos_all_plus = get_pos_of_all_ops(expr, '+')
+    pos_all_plus = util.get_pos_of_all_ops(expr, '+')
     if sign == '-':
-        pos_all_minus = get_pos_of_all_ops(expr[idx:], '-')
+        pos_all_minus = util.get_pos_of_all_ops(expr[idx:], '-')
         pos_all_minus[:]=[i+1 for i in pos_all_minus]
     else:
-        pos_all_minus = get_pos_of_all_ops(expr, '-')
+        pos_all_minus = util.get_pos_of_all_ops(expr, '-')
     
     pos_all_ops = sorted([*pos_all_plus, *pos_all_minus])
     pos_all_ops.append(n_expr)
@@ -128,6 +131,7 @@ Splits an expression at any other operator than
 + or -.
 
 @param expr     string, expression to be split
+@param op       char, operator to split at
 
 @return         string list with the parts that
                 resulted from the split
@@ -138,7 +142,7 @@ def operator_other_split(expr, op):
     i = 0
     n_expr = len(expr)
     while i < n_expr:
-        pos_op = get_pos_of_first_op(expr[i:n_expr], op)
+        pos_op = util.get_pos_of_first_op(expr[i:n_expr], op)
         if pos_op != -1:
             parts.append(expr[i:i+pos_op])
             i += pos_op + 1
@@ -166,35 +170,6 @@ def operator_split(expr, op):
 
 
 """
-Splits an expression 'expr' at the operator 'op' 
-into a maximum of 'maxsplit' parts.
-
-@param expr         string, expression to be split up
-@param op           char, operator to split at
-@param maxsplit     int, maximum number of parts that the expression is split into
-
-@return         string list with the splitted parts of 'expr'
-"""
-def operator_max_split(expr, op, maxsplit):
-    parts = operator_split(expr, op)
-    n_parts = len(parts)
-    parts_maxsplit = []
-    part_last = ""
-    
-    for i in range(n_parts):
-        if i < maxsplit-1:
-            parts_maxsplit.append(parts[i])
-        else:
-            for j in range(i, n_parts):
-                part_last += parts[j] + op 
-            part_last = part_last[:-len(op)]
-            parts_maxsplit.append(part_last)
-            break
-    
-    return parts_maxsplit
-
-
-"""
 Splits an expression 'expr' at the operator with 
 lowest precedence in that expression.
 
@@ -206,11 +181,11 @@ lowest precedence in that expression.
 def lowest_precedence_operator_split(expr):
     parts = []
     offset = 0
-    pos = get_pos_of_first_lowest_precedence_op(expr)
+    pos = util.get_pos_of_first_lowest_precedence_op(expr)
     # in this case not an operator, but a sign has been found
     if pos == 0:
         offset = 1
-        pos = get_pos_of_first_lowest_precedence_op(expr[1:])
+        pos = util.get_pos_of_first_lowest_precedence_op(expr[1:])
     if pos == -1:
         return [expr]
     op = expr[pos+offset]
@@ -274,18 +249,17 @@ through the '+' or '-' operator.
 
 @param parts    string list, expressions that are connected
                 through the '+' or '-' operator
-@param sign     char, either '+' or '-'
                 
 @return         string list, simplified expressions that are 
                 connected through the '+' operator
 """
-def simplify_addition_parts(parts, sign):
+def simplify_addition_parts(parts):
     parts_simplified = []
     
     summand_number = 0
     
     for part in parts:
-        summand_part = parse_number(part)
+        summand_part = util.parse_number(part)
         if type(summand_part) != str:
             summand_number += summand_part
             continue
@@ -311,7 +285,6 @@ def simplify_multiplication_parts(parts):
     parts_simplified = []
     
     parts_rest = []
-    parts_rest_sorted = []
     
     factor_number = 1
     
@@ -321,7 +294,7 @@ def simplify_multiplication_parts(parts):
     exponent_string_parts = []
     
     for part in parts:
-        factor_part = parse_number(part)
+        factor_part = util.parse_number(part)
         if type(factor_part) != str:
             if factor_part == 0:
                 return ["0"]
@@ -342,7 +315,7 @@ def simplify_multiplication_parts(parts):
         
     # then add ARG^(..) terms
     for potence in potences:
-        potence_parsed = parse_number(potence)
+        potence_parsed = util.parse_number(potence)
         
         if type(potence_parsed) == str:
             exponent_string_parts.append(potence_parsed)
@@ -380,85 +353,6 @@ def simplify_multiplication_parts(parts):
 
 
 """
-Splits a part at the '*' operator into exactly two parts.
-
-@param part     string, part to split
-
-@return         string list, splitted parts
-"""
-def get_distributive_law_sub_parts(part):
-    parts_sub = [""]*2
-    parts_split = operator_max_split(part, "*", 2)
-    debug_print(parts_split, 10)
-    
-    if (len(parts_split) == 1) or parts_split[0] == "":
-        parts_sub[0] = "1"
-        parts_sub[1] = parts_split[0]
-        return parts_sub
-        
-    return parts_split
-
-
-"""
-Applies a distributive law to a list of summands.
-The method looks for similar factors in the summands
-and puts them outside the brackets ("ausklammern").
-
-@param summnds  string list, list of summands
-@param sign     char, either '+' or '-'
-
-@return         string, summands in brackets 
-                with distributive law applied
-"""
-# TODO: Currently unused. Use in future versions.
-def left_distributive_law(summands, sign):
-    summands_simplified = []
-    summand_simplified = ""
-    
-    n_summands = len(summands)
-    
-    factor_right = ""
-    
-    summands_sub = []
-    
-    has_been_visited = [False]*n_summands
-    has_been_simplified = False
-    
-    if n_summands == 1:
-        return summands
-    
-    for i, summand in enumerate(summands):
-        if has_been_visited[i]:
-            continue
-        has_been_simplified = False
-        
-        summands_sub = get_distributive_law_sub_parts(summand)
-        
-        factor_right = summands_sub[1]
-        
-        summand_simplified = "(" + summands_sub[0]
-        
-        for j in range(i+1, n_summands):
-            if has_been_visited[j]:
-                continue
-            summands_sub = get_distributive_law_sub_parts(summands[j])
-            
-            if factor_right == summands_sub[1]:
-                summand_simplified += sign + summands_sub[0]
-                has_been_visited[j] = True
-                has_been_simplified = True
-                
-            summand_simplified += ")*" + factor_right
-            
-        if has_been_simplified:
-            summands_simplified.append(summand_simplified)
-        else:
-            summands_simplified.append(summand)
-    
-    return summands_simplified
-
-
-"""
 Simplfies a given list of expressions that are connected
 through the '^' operator.
 
@@ -469,14 +363,14 @@ through the '^' operator.
                 connected through the '^' operator
 """
 def simplify_potential_parts(parts):
-    num_first = parse_number(parts[0])
+    num_first = util.parse_number(parts[0])
     if num_first == 1:
         return ["1"]
     
     # since ^ is not commutative, now only look at the last two parts
     # and let the recursion of 'simplify' do the magic 
-    num_last = parse_number(parts[-1])
-    num_pre_last = parse_number(parts[-2])
+    num_last = util.parse_number(parts[-1])
+    num_pre_last = util.parse_number(parts[-2])
     
     if type(num_pre_last) != str and type(num_last) != str:
         return parts[:-2]+[str(num_pre_last ** num_last)]
@@ -501,11 +395,11 @@ recursive loop.
 @return         string, simplified expression
 """
 def simplify_sub(expr):
-    debug_print("Simplify:\t"+expr, 10)
+    util.debug_print("Simplify:\t"+expr, 10)
     expr_simp = ""
     parts_split = lowest_precedence_operator_split(expr)
-    debug_print("After lowest Precedence operator split:", 100)
-    debug_print(parts_split, 100)
+    util.debug_print("After lowest Precedence operator split:", 100)
+    util.debug_print(parts_split, 100)
     parts = []
     parts_plus = []
     parts_minus = []
@@ -519,7 +413,7 @@ def simplify_sub(expr):
                 expr_simp += bracket + simplify_sub(expr[1:-1]) + BRACKETS.get(bracket)     
                 return expr_simp
         # look for functions
-        elem_func = get_elem_func(expr, 0)
+        elem_func = util.get_elem_func(expr, 0)
         if elem_func != "":
             expr_simp += elem_func + "{" + simplify_sub(expr[len(elem_func)+1:-1]) + "}"
             return expr_simp
@@ -565,8 +459,8 @@ def simplify(expr):
         expr = expr.replace(elem_func_val, ELEM_FUNCTION_VALS.get(elem_func_val))
     # remove brackets before starting
     # the other simplifications
-    expr_simp = remove_brackets(expr)
-    debug_print(expr_simp, 10)
+    expr_simp = br.remove_brackets(expr)
+    util.debug_print(expr_simp, 10)
     expr_simp = simplify_sub(expr_simp)
     # recursively repeat until 'simplify' does not change the string anymore
     if expr_simp == expr:

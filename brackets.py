@@ -2,8 +2,10 @@
 """
 Methods to transform the brackets of an expression.
 """
+import util
+
 from data import *
-from util import *
+
 
 
 """
@@ -22,7 +24,7 @@ def transform_brackets(expr):
     b_i = -1
     is_transformable = False
     for i, _ in enumerate(expr):
-        elem_func = get_elem_func(expr, i)
+        elem_func = util.get_elem_func(expr, i)
         n_func = len(elem_func)
         if n_func > 0:
             b_i = i + n_func
@@ -33,7 +35,7 @@ def transform_brackets(expr):
                 is_transformable = True
                 break
     if is_transformable:
-        b_f = get_closed_bracket_pos(expr, b_i)
+        b_f = util.get_closed_bracket_pos(expr, b_i)
         return transform_brackets(expr[:b_i] + "{" + expr[b_i+1:b_f] + "}" + expr[b_f+1:])
     return expr    
 
@@ -52,6 +54,47 @@ def back_transform_brackets(expr):
 
 
 """
+Evaluates the precendence of "operator". If the operator is empty
+for e.g. (5)*(x) -> 5*(x) -> 5*x, we can always simplify. That is why
+an empty operator gets -1 as precedence:
+
+@param operator     char, operator whose precendence should be evaluated
+
+@return             int, precedence of the operator,
+                    i.e.: empty operator: -1, '+/-': 0, '*': 1, '^':2, etc.
+"""
+def get_precedence(operator):
+    for op in OPERATORS_DICT:
+        if op == operator:
+            return OPERATORS_DICT.get(op)
+    return -1
+
+
+"""
+Gets the operators which are one character left to 'b_i' 
+and one character right to 'b_f' in 'expr' (if there are any). 
+
+@param expr     string, expression to evaluate
+@param b_i      int, position from where to look one character left
+@param b_f      int, position from where to look one character right
+
+@return         string array with operators   
+"""
+def get_left_right_ops(expr, b_i, b_f):
+    op_left = ""
+    op_right = ""
+    n_expr = len(expr)
+    for op in OPERATORS:
+        if b_i > 0:
+            if op == expr[b_i-1]:
+                op_left = op
+        if b_f < n_expr-1:
+            if op == expr[b_f+1]:
+                op_right = op
+    return [op_left, op_right]
+
+
+"""
 Switches all '+' of an expression to '-' and vice versa 
 if those signs are not enclosed by brackets.
 
@@ -60,8 +103,8 @@ if those signs are not enclosed by brackets.
 @return         string, modified expression
 """
 def swap_plus_and_minus_signs(expr):
-    pos_plus = get_pos_of_all_ops(expr, '+')
-    pos_minus = get_pos_of_all_ops(expr, '-')
+    pos_plus = util.get_pos_of_all_ops(expr, '+')
+    pos_minus = util.get_pos_of_all_ops(expr, '-')
     
     for pos in pos_plus:
         expr = expr[:pos] + '-' + expr[pos+1:]
@@ -84,7 +127,7 @@ Recursively removes unnecessary brackets from an expression 'expr'.
 @return         string, modified expression
 """
 def remove_brackets(expr):
-    debug_print("Remove brackets:\t"+expr, 10)
+    util.debug_print("Remove brackets:\t"+expr, 10)
     n_expr = len(expr)
     op_left = ''
     op_right = ''
@@ -95,7 +138,7 @@ def remove_brackets(expr):
         if ch == "(":
             is_bracket_pair_removable = True
             b_i = i
-            b_f = get_closed_bracket_pos(expr,i)
+            b_f = util.get_closed_bracket_pos(expr,i)
             # remove brackets if the whole expression is wrapped into brackets
             if b_i == 0 and b_f == n_expr-1:
                 return remove_brackets(expr[b_i+1:b_f])
@@ -104,7 +147,7 @@ def remove_brackets(expr):
             if op_left == '-':
                 is_minus_sign_before_bracket = True
             
-            pos_lowest_precedence_op = get_pos_of_first_lowest_precedence_op(expr[b_i+1:b_f])
+            pos_lowest_precedence_op = util.get_pos_of_first_lowest_precedence_op(expr[b_i+1:b_f])
             # if there is no operator at all in 'expr',
             # then 'pos_lowest_precedence_op' is equal to -1 and
             # outer brackets can always be removed

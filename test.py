@@ -3,28 +3,29 @@
 A couple of tests to verify 
 if the programm works correctly.
 """
-from data import *
-from util import *
-from brackets import *
-from derive import *
-from simplify import *
-from syntax import *
-
 import unittest
+
+import util
+import brackets as br
+import derive as dev
+import simplify as sim
+import syntax as syn
+
+from data import *
 
 
 
 class TestsForDerivative(unittest.TestCase):
     # expressions for operator slit tests
     expressions_operators = {
-        ("x^2", "^") : ('x', '2'),
-        ("x", "^") : ('x'),
-        ("3*(2*x^4+3*x^4)+3*(2*x*sin{x}+x^2*cos{x})", "+") : (['3*(2*x^4+3*x^4)', '3*(2*x*sin{x}+x^2*cos{x})'], []),
-        ("1+2+3-4+5", "+") : (['1', '2', '3', '5'], ['4']),
-        ("1+2+3-4+5", "-") : (['1', '2', '3', '5'], ['4']),
+        ("x^2", "^") : ("x", "2"),
+        ("x", "^") : ("x"),
+        ("3*(2*x^4+3*x^4)+3*(2*x*sin{x}+x^2*cos{x})", "+") : (["3*(2*x^4+3*x^4)", "3*(2*x*sin{x}+x^2*cos{x})"], []),
+        ("1+2+3-4+5", "+") : (["1", "2", "3", "5"], ["4"]),
+        ("1+2+3-4+5", "-") : (["1", "2", "3", "5"], ["4"]),
         ("1*2*3*4*5", "-") : (["1*2*3*4*5"], []),
-        ("log{x}*x", "*") : ('log{x}', 'x'),
-        ("log{x}*x*3*x^2", "*") : ('log{x}', 'x', '3', 'x^2')
+        ("log{x}*x", "*") : ("log{x}", "x"),
+        ("log{x}*x*3*x^2", "*") : ("log{x}", "x", "3", "x^2")
     }
 
     # expressions for bracket removal test
@@ -73,14 +74,14 @@ class TestsForDerivative(unittest.TestCase):
         "3*x^2*(x^3+sin{x})" : "(0)*(x^2*(x^3+sin{x}))+(3)*((2*x^(1))*((x^3+sin{x}))+(x^2)*(3*x^(2)+cos{x}))" 
     }
     
-    # (0)*(x^2*(x^3+sin{x}))+(3)*((2*x^(1))*((x^3+sin{x}))+(x^2)*(3*x^(2)+cos{x}))
+    
     # tests for operator splitting
     def test_operator_split(self):
         for expr_op in self.expressions_operators:
             sol = list(self.expressions_operators.get(expr_op))
             expr = expr_op[0]
             op = expr_op[1]
-            parts = operator_split(expr, op)
+            parts = sim.operator_split(expr, op)
             with self.subTest():
                 self.assertEqual(parts, sol)
             
@@ -89,7 +90,7 @@ class TestsForDerivative(unittest.TestCase):
     def test_brackets(self):
         for expr in self.expressions_brackets:
             sol = self.expressions_brackets.get(expr)
-            expr = remove_brackets(expr)
+            expr = br.remove_brackets(expr)
             with self.subTest():
                 self.assertEqual(expr, sol)
    
@@ -98,8 +99,8 @@ class TestsForDerivative(unittest.TestCase):
     def test_simplification(self):
         for expr in self.expressions_simplify:
             sol = self.expressions_simplify.get(expr)
-            expr = transform_brackets(expr)
-            expr = simplify(expr)
+            expr = br.transform_brackets(expr)
+            expr = sim.simplify(expr)
             with self.subTest():
                 self.assertEqual(expr, sol)
     
@@ -108,10 +109,11 @@ class TestsForDerivative(unittest.TestCase):
     def test_derivative(self):
         for expr in self.expressions_derivatives:
             sol = self.expressions_derivatives.get(expr)
-            expr = derive_sub(expr)
+            expr = dev.derive_sub(expr)
             with self.subTest():
                 self.assertEqual(expr, sol)
             
-    
+
+
 # main:
 unittest.main()

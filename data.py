@@ -46,7 +46,6 @@ ELEM_FUNCTION_VALS = {
 # second dictionary entry is the operator precedence
 OPERATORS_DICT = {"+" : 0, "-" : 0, "*" : 1, "^" : 2}
 OPERATORS = list(OPERATORS_DICT.keys())
-N_OP = len(OPERATORS_DICT)
 
 # brackets
 BRACKETS = {"(" : ")", "{" : "}"}
@@ -78,4 +77,4 @@ NEWLINE = "\n"
 # level for debug printout, 
 # the higher, the more information, 
 # 0 no printout at all
-debug_level = 1
+DEBUG_LEVEL = 1
