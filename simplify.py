@@ -92,44 +92,33 @@ def operator_plus_minus_split(expr):
     parts_minus = []
     n_expr = len(expr)
     sign = ''
-    pos = 0
-    i = 0
+    idx = 0
     part = ""
     # get sign of first summand
     sign = '+'
     if expr[0] == '-':
         sign = '-'
-        i = 1
-    # TODO for later: rewrite method with get_pos_of_all_ops()
-    while (i<n_expr):
-        pos_plus = get_pos_of_first_op(expr[i:], '+')
-        pos_minus = get_pos_of_first_op(expr[i:], '-')
-        # append whole expression as part 
-        # when it neither contains a '+' nor a '-'
-        if pos_plus == -1 and pos_minus == -1:
-            part = expr[i:n_expr]
-            if sign == '+':
-                parts_plus.append(part)
-            elif sign == '-':
-                parts_minus.append(part)
-            break
-        # find out if a '+' or a '-' occurs first in 'expr'
-        if pos_plus == -1:
-            pos = pos_minus
-        elif pos_minus == -1:
-            pos = pos_plus
-        elif pos_plus < pos_minus:
-            pos = pos_plus
-        else:
-            pos = pos_minus
-        # extract and append the corresponding part
-        part = expr[i:i+pos]
+        idx = 1
+        
+    pos_all_plus = get_pos_of_all_ops(expr, '+')
+    if sign == '-':
+        pos_all_minus = get_pos_of_all_ops(expr[idx:], '-')
+        pos_all_minus[:]=[i+1 for i in pos_all_minus]
+    else:
+        pos_all_minus = get_pos_of_all_ops(expr, '-')
+    
+    pos_all_ops = sorted([*pos_all_plus, *pos_all_minus])
+    pos_all_ops.append(n_expr)
+    
+    for pos_op in pos_all_ops:
+        part = expr[idx:pos_op]
         if sign == '+':
             parts_plus.append(part)
         elif sign == '-':
             parts_minus.append(part)
-        sign = expr[i+pos]
-        i += pos+1
+        if pos_op < n_expr:
+            sign = expr[pos_op]
+            idx = pos_op+1
     
     return [parts_plus, parts_minus]
 

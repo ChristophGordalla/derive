@@ -22,6 +22,7 @@ class TestsForDerivative(unittest.TestCase):
         ("3*(2*x^4+3*x^4)+3*(2*x*sin{x}+x^2*cos{x})", "+") : (['3*(2*x^4+3*x^4)', '3*(2*x*sin{x}+x^2*cos{x})'], []),
         ("1+2+3-4+5", "+") : (['1', '2', '3', '5'], ['4']),
         ("1+2+3-4+5", "-") : (['1', '2', '3', '5'], ['4']),
+        ("1*2*3*4*5", "-") : (["1*2*3*4*5"], []),
         ("log{x}*x", "*") : ('log{x}', 'x'),
         ("log{x}*x*3*x^2", "*") : ('log{x}', 'x', '3', 'x^2')
     }
@@ -40,9 +41,11 @@ class TestsForDerivative(unittest.TestCase):
         "((3*x^2)*sin{x*(x^2)+exp{x}}*cos{x})" : "3*x^2*sin{x*x^2+exp{x}}*cos{x}", 
         "0*x^2*(x^3+sin{x})+3*((2*x^1)*(x^3+sin{x})+x^2*cos{x})" : "0*x^2*(x^3+sin{x})+3*(2*x^1*(x^3+sin{x})+x^2*cos{x})",
         "(sin{cos{exp{x^2}}})" : "sin{cos{exp{x^2}}}",
-        "((cos{sin{x}*exp{x}}*((cos{x})*(exp{x})+(sin{x})*(exp{x}))))" : "cos{sin{x}*exp{x}}*(cos{x}*exp{x}+sin{x}*exp{x})"
+        "((cos{sin{x}*exp{x}}*((cos{x})*(exp{x})+(sin{x})*(exp{x}))))" : "cos{sin{x}*exp{x}}*(cos{x}*exp{x}+sin{x}*exp{x})",
+        "-(a+5-x^2)" : "-a-5+x^2",
+        "-(-a+5-x^2)" : "+a-5+x^2",
     }
-
+        
     # expressions for simplification test
     expressions_simplify = {
         "2^0" : "1",
@@ -89,7 +92,7 @@ class TestsForDerivative(unittest.TestCase):
             expr = remove_brackets(expr)
             with self.subTest():
                 self.assertEqual(expr, sol)
-    
+   
     
     # tests for expression simplification
     def test_simplification(self):
